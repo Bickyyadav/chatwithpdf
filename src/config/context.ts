@@ -31,10 +31,10 @@ export async function getContext(query: string, fileKey: string) {
 
   const queryEmbedding = await getEmbedding(query);
   if (!queryEmbedding) {
-  return null;
+    return null;
   }
   const matches = await getMatchesFromEmbeddings(queryEmbedding, fileKey);
-  
+
   type Metadata = {
     text: string;
     pageNumber: number;

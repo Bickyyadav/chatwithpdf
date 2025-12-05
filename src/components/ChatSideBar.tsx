@@ -32,19 +32,19 @@ const ChatSideBar = ({ chatId, chats }: Props) => {
   };
 
   return (
-    <div className="w-full h-screen p-4 text-gray-500 bg-gray-800">
+    <div className="w-full h-screen p-4 text-gray-500 bg-gray-800 flex flex-col overflow-hidden">
       <Link href="">
         <Button className="w-full  border-dashed border-white border">
           <PlusCircle className="mr-2 w-4 h-4" /> New Chat
         </Button>
       </Link>
 
-      <div className="flex flex-col gap-2 mt-4">
+      <div className="flex flex-col gap-2 mt-4 overflow-y-auto pr-2 flex-1">
         {chats.map((chat) => (
           <Link href="" key={chat.id}>
             <div
               className={cn(
-                " rounded-lg p-3 text-slate-300 flex items-center",
+                " rounded-lg p-3 text-slate-300 flex items-center ",
                 {
                   "bg-blue-600 text-white": chat.id === chatId,
                   "hover:text-white": chat.id !== chatId,
@@ -52,14 +52,14 @@ const ChatSideBar = ({ chatId, chats }: Props) => {
               )}
             >
               <MessageCircle className="mr-2" />
-              <p className="w-full overflow-hidden text-sm truncate whitespace-normal text-ellipses">
+              <p className="w-full overflow-hidden text-sm truncate whitespace-nowrap">
                 {chat.pdf_Name}
               </p>
             </div>
           </Link>
         ))}
       </div>
-      <div className="absolute bottom-4 left-4">
+      <div className="mt-4">
         <div className="flex items-center gap-2 text-sm text-slate-200 flex-wrap">
           <Link href="/">Home</Link>
           <Link href="/">Source</Link>
