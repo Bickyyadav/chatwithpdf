@@ -1,6 +1,6 @@
 /* eslint-disable prefer-const */
 import { Pinecone, PineconeRecord } from "@pinecone-database/pinecone";
-import { downloadFromS3 } from "./s3-getpdf";
+import { downloadFromCloudinary } from "./cloudinary-server";
 //PDFLoader in LangChain is used to extract and convert the content of a PDF file into plain text documents,
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import {
@@ -29,11 +29,11 @@ type PDFPage = {
   };
 };
 
-export async function loadS3IntoPinecone(fileKey: string) {
+export async function loadS3IntoPinecone(fileKey: string, resource_type?: string) {
   try {
     //1 obtain the pdf--download and read from pdf
     console.log("downloading s3 into file system");
-    const file_name = await downloadFromS3(fileKey);
+    const file_name = await downloadFromCloudinary(fileKey, resource_type);
     if (!file_name) {
       throw new Error("could not download from s3");
     }

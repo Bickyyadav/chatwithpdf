@@ -3,6 +3,51 @@ import { prisma_client } from "@/config/prismaClient";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.OPEN_AI_KEY!);
+type GenerativeModel = ReturnType<GoogleGenerativeAI["getGenerativeModel"]>;
+type GenerateContentArgs = Parameters<GenerativeModel["generateContent"]>[0];
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function generateWithRetry(
+  model: GenerativeModel,
+  args: GenerateContentArgs,
+  retries = 2
+) {
+  let lastError: unknown = null;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await model.generateContent(args);
+    } catch (error) {
+      lastError = error;
+      const status = getErrorStatus(error);
+      if (status === 503 && attempt < retries) {
+        const delay = 500 * 2 ** attempt;
+        console.warn(
+          `Gemini overloaded (503). Retry ${attempt + 1} of ${retries} in ${delay}ms.`
+        );
+        await wait(delay);
+        continue;
+      }
+      break;
+    }
+  }
+  throw lastError ?? new Error("Failed to generate content");
+}
+
+const getErrorStatus = (error: unknown): number | undefined => {
+  if (typeof error === "object" && error !== null) {
+    if ("status" in error && typeof (error as { status?: number }).status === "number") {
+      return (error as { status: number }).status;
+    }
+    if (
+      "response" in error &&
+      typeof (error as { response?: { status?: number } }).response?.status === "number"
+    ) {
+      return (error as { response: { status: number } }).response.status;
+    }
+  }
+  return undefined;
+};
 
 export async function POST(req: Request) {
   try {
@@ -31,7 +76,7 @@ export async function POST(req: Request) {
     const context = await getContext(query, fileKey);
 
     const systemPrompt = {
-      role: "assistant",
+      role: "user",
       parts: [
         {
           text: `AI assistant is a brand new, powerful, human-like artificial intelligence.
@@ -51,17 +96,19 @@ export async function POST(req: Request) {
       ],
     };
 
+    const normalizeRole = (role: string) =>
+      role === "assistant" ? "model" : "user";
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const history = messages.map((msg: any) => ({
-      role: msg.role,
+      role: normalizeRole(msg.role),
       parts: [{ text: msg.content }],
     }));
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const result = await model.generateContent({
-      contents: [systemPrompt, ...history],
-    });
+    const contents = [systemPrompt, ...history];
+    const result = await generateWithRetry(model, { contents });
 
     const text = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
 
@@ -81,6 +128,13 @@ export async function POST(req: Request) {
       message: [{ role: "assistant", content: text }],
     });
   } catch (error) {
+    const status = getErrorStatus(error);
+    if (status === 503) {
+      return Response.json(
+        { error: "The AI model is temporarily overloaded. Please retry shortly." },
+        { status: 503 }
+      );
+    }
     console.error("🚀 ~ POST ~ error:", error);
     return new Response("Internal Server Error", { status: 500 });
   }

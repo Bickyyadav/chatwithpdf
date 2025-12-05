@@ -1,23 +1,25 @@
 import { loadS3IntoPinecone } from "@/config/pinecone";
 import { prisma_client } from "@/config/prismaClient";
-import { getS3Url } from "@/config/s3";
+import { getCloudinaryUrl } from "@/config/cloudinary";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   const { userId } = await auth();
+  console.log("🟢🟢🟢🟢🟢 ~ POST ~ userId:", userId)
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   try {
     const body = await req.json();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { file_key, file_name } = body;
-    await loadS3IntoPinecone(file_key);
+    const { file_key, file_name, resource_type } = body;
+    console.log("🟢🟢🟢🟢🟢 ~ POST ~ file_name:", file_name)
+    console.log("🟢🟢🟢🟢🟢 ~ POST ~ file_key:", file_key)
+    await loadS3IntoPinecone(file_key, resource_type);
     const createChat = await prisma_client.chats.create({
       data: {
         pdf_Name: file_name,
-        pdf_url: getS3Url(file_key),
+        pdf_url: getCloudinaryUrl(file_key, resource_type),
         file_key: file_key,
         user_id: userId,
       },

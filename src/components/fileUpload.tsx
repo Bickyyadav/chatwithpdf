@@ -1,5 +1,5 @@
 "use client";
-import { uploadToS3 } from "@/config/s3";
+import { uploadToCloudinary } from "@/config/cloudinary";
 import { useMutation } from "@tanstack/react-query";
 import { Inbox, Loader2 } from "lucide-react";
 import React, { useState } from "react";
@@ -15,13 +15,16 @@ const FileUpload = () => {
     mutationFn: async ({
       file_key,
       file_name,
+      resource_type,
     }: {
       file_key: string;
       file_name: string;
+      resource_type?: string;
     }) => {
       const response = await axios.post("/api/create-chat", {
         file_key,
         file_name,
+        resource_type,
       });
       return response.data;
     },
@@ -38,7 +41,7 @@ const FileUpload = () => {
       }
       try {
         // setUploading(true);
-        const data = await uploadToS3(file);
+        const data = await uploadToCloudinary(file);
         if (!data?.file_key || !data?.file_name) {
           alert("something went wrong");
           return;

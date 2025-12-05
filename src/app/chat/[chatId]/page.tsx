@@ -12,7 +12,8 @@ type Props = {
   };
 };
 
-const chatPage = async ({ params: { chatId } }: Props) => {
+const chatPage = async ({ params }: Props) => {
+  const { chatId } = await params;
   const { userId } = await auth();
   if (!userId) {
     return redirect("/sign-in");
@@ -28,11 +29,11 @@ const chatPage = async ({ params: { chatId } }: Props) => {
     redirect("/");
   }
 
-  if (!getChats.find((chat) => chat.id === chatId)) {
+  if (!getChats.find((chat: any) => chat.id === chatId)) {
     redirect("/");
   }
 
-  const currentUrl = getChats.find((chat) => chat.id === chatId);
+  const currentUrl = getChats.find((chat: any) => chat.id === chatId);
 
   return (
     <div className=" flex max-h-screen overflow-hidden">
