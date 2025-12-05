@@ -31,7 +31,7 @@ export async function getContext(query: string, fileKey: string) {
 
   const queryEmbedding = await getEmbedding(query);
   if (!queryEmbedding) {
-    return;
+  return null;
   }
   const matches = await getMatchesFromEmbeddings(queryEmbedding, fileKey);
   
@@ -40,7 +40,19 @@ export async function getContext(query: string, fileKey: string) {
     pageNumber: number;
   };
 
-  // eslint-disable-next-line prefer-const
-  let docs = matches.map((match) => (match.metadata as Metadata).text);
-  return docs.join("\n").substring(0, 3000);
+  const docs = matches
+    .map((match) => match.metadata as Metadata)
+    .filter((metadata): metadata is Metadata => Boolean(metadata?.text))
+    .map((metadata) => {
+      const pageLabel = metadata.pageNumber
+        ? `Page ${metadata.pageNumber}`
+        : "Unknown page";
+      return `${pageLabel}: ${metadata.text}`;
+    });
+
+  if (!docs.length) {
+    return null;
+  }
+
+  return docs.join("\n\n").slice(0, 4000);
 }

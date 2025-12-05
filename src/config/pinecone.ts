@@ -30,9 +30,11 @@ type PDFPage = {
 };
 
 export async function loadS3IntoPinecone(fileKey: string, resource_type?: string) {
+  console.log("🔴🔴 ~ loadS3IntoPinecone ~ resource_type:", resource_type)
+  console.log("🔴🔴 ~ loadS3IntoPinecone ~ fileKey:", fileKey)
   try {
     //1 obtain the pdf--download and read from pdf
-    console.log("downloading s3 into file system");
+    console.log("🔴🔴🔴🔴🔴🔴🔴downloading s3 into file system");
     const file_name = await downloadFromCloudinary(fileKey, resource_type);
     if (!file_name) {
       throw new Error("could not download from s3");

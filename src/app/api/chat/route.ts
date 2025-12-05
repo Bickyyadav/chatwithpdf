@@ -70,34 +70,55 @@ export async function POST(req: Request) {
     }
 
     const fileKey = chat.file_key;
-    const query = messages[messages.length - 1]?.content;
+    const latestMessage = messages[messages.length - 1];
+    const query = latestMessage?.content;
+
+    if (!query) {
+      return Response.json(
+        { error: "No user query was provided." },
+        { status: 400 }
+      );
+    }
 
     // ✅ Ensure only the string content is passed to getContext
     const context = await getContext(query, fileKey);
+
+    if (!context) {
+      return Response.json({
+        message: [
+          {
+            role: "assistant",
+            content:
+              "I couldn't find any relevant information in the uploaded PDF to answer that question. Please try asking about something that appears in the document.",
+          },
+        ],
+      });
+    }
 
     const systemPrompt = {
       role: "user",
       parts: [
         {
-          text: `AI assistant is a brand new, powerful, human-like artificial intelligence.
-                 The traits of AI include expert knowledge, helpfulness, cleverness, and articulateness.
-                 AI is a well-behaved and well-mannered individual.
-                 AI is always friendly, kind, and inspiring, and he is eager to provide vivid and thoughtful responses to the user.
-                 AI has the sum of all knowledge in their brain, and is able to accurately answer nearly any question about any topic in conversation.
-                 AI assistant is a big fan of Pinecone and Vercel.
-                 START CONTEXT BLOCK
+          text: `You are an AI assistant that must ONLY answer using the supplied PDF context.
+                 Never rely on outside knowledge. If the answer is not in the context, reply with "I'm sorry, but I don't know the answer to that question."
+                 Keep responses concise and cite page numbers when available.`,
+        },
+      ],
+    };
+
+    const contextPrompt = {
+      role: "user",
+      parts: [
+        {
+          text: `Context from the uploaded PDF:
                  ${context}
-                 END OF CONTEXT BLOCK
-                 AI assistant will take into account any CONTEXT BLOCK that is provided in a conversation.
-                 If the context does not provide the answer to question, the AI assistant will say, "I'm sorry, but I don't know the answer to that question".
-                 AI assistant will not apologize for previous responses, but instead will indicate new information was gained.
-                 AI assistant will not invent anything that is not drawn directly from the context.`,
+                 Do not use any information beyond this context.`,
         },
       ],
     };
 
     const normalizeRole = (role: string) =>
-      role === "assistant" ? "model" : "user";
+      role === "assistant" || role === "model" ? "model" : "user";
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const history = messages.map((msg: any) => ({
@@ -107,7 +128,7 @@ export async function POST(req: Request) {
 
     const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    const contents = [systemPrompt, ...history];
+    const contents = [systemPrompt, contextPrompt, ...history];
     const result = await generateWithRetry(model, { contents });
 
     const text = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
