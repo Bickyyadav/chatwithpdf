@@ -20,6 +20,7 @@ type Props = {
   chatId: string;
 };
 
+
 const ChatSideBar = ({ chatId, chats }: Props) => {
   console.log("chatsfasdffffffff", chats);
 
