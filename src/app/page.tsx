@@ -13,7 +13,7 @@ export default async function Home() {
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
         <div className="flex flex-col items-center text-center">
           <div className="flex items-center ">
-            <h1 className="mr-2 text-5xl font-semibold">Chat with any Pdf</h1>
+            <h1 className="mr-2 text-5xl font-semibold ">Chat with  Pdf with voice outreach</h1>
             <div className="pl-9">
               <UserButton />
             </div>

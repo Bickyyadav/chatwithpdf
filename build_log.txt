@@ -1,0 +1,26 @@
+
+> chatpdf@0.1.0 build
+> next build
+
+   Γû▓ Next.js 15.3.1
+   - Environments: .env
+
+   Creating an optimized production build ...
+ Γ£ô Compiled successfully in 4.0s
+   Skipping linting
+   Checking validity of types ...
+Failed to compile.
+
+.next/types/app/chat/[chatId]/page.ts:34:29
+Type error: Type 'Props' does not satisfy the constraint 'PageProps'.
+  Types of property 'params' are incompatible.
+    Type '{ chatId: string; }' is missing the following properties from type 'Promise<any>': then, catch, finally, [Symbol.toStringTag]
+
+  32 |
+  33 | // Check the prop type of the entry function
+> 34 | checkFields<Diff<PageProps, FirstArg<TEntry['default']>, 'default'>>()
+     |                             ^
+  35 |
+  36 | // Check the arguments and return type of the generateMetadata function
+  37 | if ('generateMetadata' in entry) {
+Next.js build worker exited with code: 1 and signal: null
