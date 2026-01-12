@@ -1,5 +1,4 @@
 "use client";
-import { chats } from "@prisma/client";
 import Link from "next/link";
 import React, { useState } from "react";
 import { Button } from "./ui/button";
@@ -7,12 +6,22 @@ import { MessageCircle, PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import axios from "axios";
 
+type Chat = {
+  id: string;
+  pdf_Name: string;
+  pdf_url: string;
+  user_id: string;
+  file_key: string;
+  createdAt: Date;
+};
+
 type Props = {
-  chats: chats[];
+  chats: Chat[];
   chatId: string;
 };
 
 const ChatSideBar = ({ chatId, chats }: Props) => {
+  console.log("chatsfasdffffffff", chats);
 
   const [loading, setLoading] = useState(false);
   const handleSubscription = async () => {
