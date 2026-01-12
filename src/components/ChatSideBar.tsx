@@ -21,9 +21,9 @@ type Props = {
 };
 
 
-const ChatSideBar = ({ chatId, chats }: Props) => {
-  console.log("chatsfasdffffffff", chats);
 
+const ChatSideBar = ({ chatId, chats }: Props) => {
+  
   const [loading, setLoading] = useState(false);
   const handleSubscription = async () => {
     try {
